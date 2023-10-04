@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.4/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+    <title>Просмотр книги</title>
+    <style>
+        .login-page {
+          width: 600px;
+          padding: 8% 0 0;
+          margin: auto;
+        }
+
+        .form {
+          position: relative;
+          z-index: 1;
+          background: #FFFFFF;
+          margin: 0 auto 100px;
+          padding: 45px;
+          box-shadow: 0 0 20px 0 rgba(0, 0, 0, 0.2), 0 5px 5px 0 rgba(0, 0, 0, 0.24);
+        }
+    </style>
+</head>
+<body>
+<div class="login-page">
+    <div class="form">
+        <h1 style="text-align: center;">Просмотр</h1>
+        <br/>
+        <p>Название: <em>[[${book.getTitle()}]].</em></p>
+        <p>Жанр: <em>[[${book.getCategory()}]].</em></p>
+        <p>Автор: <em>[[${book.getAuthor().getName()}]].</em></p>
+        <p>Кол-во страниц: <em>[[${book.getPageCount()}]].</em></p>
+        <p>Isbn: <em>[[${book.getIsbn()}]].</em></p>
+        <p>Описание: <em>[[${book.getDescription()}]].</em></p>
+    </div>
+</div>
+</body>
+</html>
