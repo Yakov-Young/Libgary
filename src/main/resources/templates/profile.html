@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.4/jquery.min.js"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+  <title>Профиль</title>
+  <style>
+        .login-page {
+          width: 600px;
+          padding: 8% 0 0;
+          margin: auto;
+        }
+
+        .form {
+          position: relative;
+          z-index: 1;
+          background: #FFFFFF;
+          margin: 0 auto 100px;
+          padding: 45px;
+          box-shadow: 0 0 20px 0 rgba(0, 0, 0, 0.2), 0 5px 5px 0 rgba(0, 0, 0, 0.24);
+        }
+    </style>
+</head>
+<body>
+  <div class="login-page">
+    <div class="form">
+      <h1 style="text-align: center;">Профиль</h1>
+      <br/>
+      <p>Имя: <em>[[${user.getFirstName()}]].</em></p>
+      <p>Фамилия: <em>[[${user.getLastName()}]].</em></p>
+      <p>День рождения: <em>[[${user.getBirthday()}]].</em></p>
+      <p>Адресс: <em>[[${user.getAddress()}]].</em></p>
+      <div id='toolbar'>
+        <div class='wrapper text-center'>
+          <div class="input-group-prepend">
+            <form th:method='GET' th:action="@{/api/borrowBook/getYourselfHistory}">
+              <input type="submit" class="btn btn-primary btn-lg" value="История">
+            </form>
+            <form th:method='GET' th:action="@{/api/reader/changeProfileHtml}">
+              <input type="submit" class="btn btn-secondary btn-lg" value="Изменить профиль">
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

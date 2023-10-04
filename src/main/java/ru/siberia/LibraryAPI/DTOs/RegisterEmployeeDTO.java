@@ -2,10 +2,12 @@ package ru.siberia.LibraryAPI.DTOs;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
+import org.springframework.format.annotation.DateTimeFormat;
 import ru.siberia.LibraryAPI.Entities.Access;
 import ru.siberia.LibraryAPI.Entities.Enums.Roles;
 
 import java.time.LocalDateTime;
+import java.util.Date;
 
 public class RegisterEmployeeDTO {
     @JsonProperty("firstName")
@@ -18,14 +20,11 @@ public class RegisterEmployeeDTO {
     String login;
     @JsonProperty("password")
     String password;
-    @JsonProperty("access")
-    Access access;
-    @JsonProperty("role")
-    Roles role;
+    @DateTimeFormat(pattern = "yyyy-MM-dd")
     @JsonProperty("birthday")
-    LocalDateTime birthday;
+    Date birthday;
 
-    public LocalDateTime getBirthday() {
+    public Date getBirthday() {
         return birthday;
     }
     public String getLogin() {
@@ -48,12 +47,27 @@ public class RegisterEmployeeDTO {
         return salary;
     }
 
-    public Roles getRole() {
-        return role;
+    public void setFirstName(String firstName) {
+        this.firstName = firstName;
     }
 
-    public Access getAccess() {
-        return access;
+    public void setLastName(String lastName) {
+        this.lastName = lastName;
     }
 
+    public void setSalary(int salary) {
+        this.salary = salary;
+    }
+
+    public void setLogin(String login) {
+        this.login = login;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
+    }
+
+    public void setBirthday(Date birthday) {
+        this.birthday = birthday;
+    }
 }

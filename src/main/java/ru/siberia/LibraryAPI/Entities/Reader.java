@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 
 import java.time.LocalDateTime;
+import java.util.Date;
 
 @Entity
 @Table(name = "reader", schema = "v1")
@@ -24,7 +25,7 @@ public class Reader implements IUser {
     @Column(name = "birthday",
             nullable = false)
     @JsonFormat(pattern="yyyy-MM-dd'T'HH:mm:ss")
-    LocalDateTime birthday;
+    Date birthday;
 
     @Column(name = "is_banned",
             nullable = false)
@@ -66,11 +67,15 @@ public class Reader implements IUser {
         this.lastName = lastName;
     }
 
-    public LocalDateTime getBirthday() {
+    public String getAddress() {
+        return address;
+    }
+
+    public Date getBirthday() {
         return birthday;
     }
 
-    public void setBirthday(LocalDateTime birthday) {
+    public void setBirthday(Date birthday) {
         this.birthday = birthday;
     }
 

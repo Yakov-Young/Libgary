@@ -29,4 +29,6 @@ public class ReaderService {
     public Reader getById(long id) { return  repository.findById(id);}
 
     public List<Reader> getByLastName(String lastName) { return repository.findByLastName(lastName); }
+
+    public Reader getByFullName(String firstName, String lastName) {return repository.findByFirstNameAndLastName(firstName, lastName);}
 }

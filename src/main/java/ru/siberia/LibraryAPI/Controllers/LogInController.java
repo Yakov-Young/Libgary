@@ -8,7 +8,10 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.Cookie;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.ModelAndView;
+import org.springframework.web.servlet.view.RedirectView;
 import ru.siberia.LibraryAPI.Controllers.Error.AccessException;
 import ru.siberia.LibraryAPI.DTOs.LoginDTO;
 import ru.siberia.LibraryAPI.Entities.Employee;
@@ -44,7 +47,8 @@ public class LogInController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<?> login(@ModelAttribute("accessData") @RequestBody LoginDTO body, HttpServletResponse response) {
+    public RedirectView login(@ModelAttribute("accessData") @RequestBody LoginDTO body,
+                              HttpServletResponse response) {
 
         try {
             HashPassword hashPassword = new HashPassword();
@@ -55,7 +59,7 @@ public class LogInController {
             IUser user = searchUser(id);
 
             if (user == null)
-                return ResponseEntity.status(203).body("Invalid password or login");
+                throw new AccessException();
 
             Roles role;
 
@@ -79,7 +83,8 @@ public class LogInController {
             String jwt = Jwts.builder()
                     .setIssuer(issuer)
                     .setExpiration(new Date(System.currentTimeMillis() * 60 * 20 * 1000))
-                    .setClaims(Map.of("role", role))
+                    .claim("role", role)
+                    .claim("id", user.getId())
                     .signWith(key, SignatureAlgorithm.HS512)
                     .compact();
 
@@ -87,10 +92,12 @@ public class LogInController {
             cookie.setHttpOnly(true);
 
             response.addCookie(cookie);
-
-            return ResponseEntity.ok(user);
+            if (role == Roles.Reader)
+                return new RedirectView("/api/book/available/true");
+            else
+                return new RedirectView("/api/book");
         } catch (AccessException e) {
-            return ResponseEntity.badRequest().body("");
+            return new RedirectView("/error");
         }
     }
 

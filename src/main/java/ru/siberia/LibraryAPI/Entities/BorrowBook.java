@@ -1,9 +1,11 @@
 package ru.siberia.LibraryAPI.Entities;
 
 import jakarta.persistence.*;
+import org.springframework.format.annotation.DateTimeFormat;
 import ru.siberia.LibraryAPI.Entities.Enums.Status;
 
 import java.time.LocalDateTime;
+import java.util.Date;
 
 @Entity
 @Table(name = "borrow_book", schema = "v1")
@@ -24,11 +26,13 @@ public class BorrowBook {
 
     @Column(name = "start_date",
             nullable = false)
-    LocalDateTime startDate;
+    @DateTimeFormat(pattern = "yyyy-MM-dd")
+    Date startDate;
 
     @Column(name = "end_date",
             nullable = false)
-    LocalDateTime endDate;
+    @DateTimeFormat(pattern = "yyyy-MM-dd")
+    Date endDate;
 
     @Column(name = "status",
             nullable = false)
@@ -59,19 +63,19 @@ public class BorrowBook {
         this.book = book;
     }
 
-    public LocalDateTime getStartDate() {
+    public Date getStartDate() {
         return startDate;
     }
 
-    public void setStartDate(LocalDateTime startDate) {
+    public void setStartDate(Date startDate) {
         this.startDate = startDate;
     }
 
-    public LocalDateTime getEndDate() {
+    public Date getEndDate() {
         return endDate;
     }
 
-    public void setEndDate(LocalDateTime endDate) {
+    public void setEndDate(Date endDate) {
         this.endDate = endDate;
     }
 

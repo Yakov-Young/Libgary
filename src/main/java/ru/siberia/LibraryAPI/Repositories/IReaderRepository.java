@@ -13,4 +13,6 @@ public interface IReaderRepository extends JpaRepository<Reader, Long> {
     Reader findById(long id);
 
     List<Reader> findByLastName(String lastName);
+
+    Reader findByFirstNameAndLastName(String firstName, String lastName);
 }

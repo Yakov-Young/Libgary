@@ -4,8 +4,12 @@ package ru.siberia.LibraryAPI.Controllers;
 import io.jsonwebtoken.Claims;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.ui.ModelMap;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.ModelAndView;
+import org.springframework.web.servlet.view.RedirectView;
 import ru.siberia.LibraryAPI.Controllers.Error.InvalidTokenOrWrongRole;
 import ru.siberia.LibraryAPI.DTOs.CreateBookDTO;
 import ru.siberia.LibraryAPI.DTOs.DeleteBookDTO;
@@ -21,7 +25,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
-@RestController
+@Controller
 @RequestMapping("api/book")
 public class BookController {
 
@@ -37,7 +41,8 @@ public class BookController {
     }
 
     @GetMapping
-    public ResponseEntity<?> getAll(@CookieValue String jwt) {
+    public ModelAndView getAll(@CookieValue String jwt,
+                               ModelMap model) {
         try {
             String role = getRole(JwtFilter.getBody(jwt));
 
@@ -48,45 +53,35 @@ public class BookController {
             if (checkRights(requiredRoles, role)) {
                 throw new InvalidTokenOrWrongRole();
             }
+            model.addAttribute("books", bookService.getAll());
 
-            return ResponseEntity.ok(bookService.getAll());
+            if (Objects.equals(role, Roles.Employee.toString()))
+                return new ModelAndView("mainEmployee", model);
+            else
+                return new ModelAndView("mainDirector", model);
         } catch (InvalidTokenOrWrongRole e) {
-            return ResponseEntity.badRequest().body(
-                    Map.of("description", "Invalid token or wrong role")
-            );
+            return new ModelAndView("error");
         }
     }
 
     @GetMapping("/{id}")
-    public String getById(@PathVariable int id,
+    public ResponseEntity<?> getById(@PathVariable int id,
                                      @CookieValue String jwt,
                                      Model model) {
         try {
-            String role = getRole(JwtFilter.getBody(jwt));
+            JwtFilter.getBody(jwt);
 
-            List<Roles> requiredRoles = new ArrayList<>();
-            requiredRoles.add(Roles.Director);
-            requiredRoles.add(Roles.Employee);
-
-            if (checkRights(requiredRoles, role)) {
-                throw new InvalidTokenOrWrongRole();
-            }
-
-            model.addAttribute("user", ResponseEntity.ok(bookService.getById(id)));
-            //return ResponseEntity.ok(bookService.getById(id));
-            return "GetAllBook";
+            return ResponseEntity.ok(bookService.getById(id));
         } catch (InvalidTokenOrWrongRole e) {
-            /*return ResponseEntity.badRequest().body(
-                    Map.of("description", "Invalid token or wrong role")
-            );*/
-            return ")";
+            return ResponseEntity.badRequest().body(
+                    Map.of("description", "Wrong role")
+            );
         }
     }
 
-    @PostMapping("/deleteBook/{id}")
-    public ResponseEntity<?> deleteBook(@PathVariable long id,
-                                        @CookieValue String jwt,
-                                        @RequestBody DeleteBookDTO deleteBookDTO) throws Exception {
+    @GetMapping("/deleteBook")
+    public RedirectView deleteBook(@RequestParam long id,
+                                        @CookieValue String jwt) {
         try {
             String role = getRole(JwtFilter.getBody(jwt));
 
@@ -99,19 +94,18 @@ public class BookController {
             }
 
             Book book = bookService.getById(id);
-            book.setAvailable(deleteBookDTO.isAvailable());
+            book.setAvailable(!book.isAvailable());
+            bookService.save(book);
 
-            return ResponseEntity.ok(bookService.save(book));
+            return new RedirectView("/api/book");
         } catch (InvalidTokenOrWrongRole e) {
-            return ResponseEntity.badRequest().body(
-                    Map.of("description", "Invalid token or wrong role")
-            );
+            return new RedirectView("/error");
         }
     }
 
     @PostMapping("/create")
-    public ResponseEntity<?> create(@ModelAttribute @RequestBody CreateBookDTO bookDTO,
-                                    @CookieValue String jwt) {
+    public RedirectView create(@ModelAttribute("book") @RequestBody CreateBookDTO bookDTO,
+                               @CookieValue String jwt) {
         try {
             String role = getRole(JwtFilter.getBody(jwt));
 
@@ -129,43 +123,45 @@ public class BookController {
             newBook.setDescription(bookDTO.getDescription());
             newBook.setIsbn(bookDTO.getIsbn());
             newBook.setPageCount(bookDTO.getPageCount());
-            newBook.setAvailable(bookDTO.isAvailable());
+            newBook.setAvailable(true);
 
             Author author = authorService.getByName(bookDTO.getAuthor());
-
             newBook.setAuthor(author);
+            bookService.save(newBook);
 
-            return ResponseEntity.ok(bookService.save(newBook));
-        } catch (InvalidTokenOrWrongRole e) {
-            return ResponseEntity.badRequest().body(
-                    Map.of("description", "Invalid token or wrong role")
-            );
+            return new RedirectView("/api/book");
         } catch (Exception e) {
-            return ResponseEntity.badRequest().body(
-                    Map.of("description", "Invalid data")
-            );
+            return new RedirectView("/error");
         }
 
     }
 
     @GetMapping("/available/{available}")
-    public ResponseEntity<?> availableBook(@PathVariable boolean available,
+    public ModelAndView availableBook(@PathVariable boolean available,
+                                                    ModelMap model,
                                                     @CookieValue String jwt) {
         try {
-            getRole(JwtFilter.getBody(jwt));
+            var tmp = JwtFilter.getBody(jwt);
+            String role = tmp.get("role").toString();
 
-            return ResponseEntity.ok(bookService.getByAvailable(available));
+            model.addAttribute("books", bookService.getByAvailable(available));
+
+            if (Objects.equals(role, Roles.Reader.toString())) {
+
+                return new ModelAndView("mainReader", model);
+            } else {
+                return new ModelAndView("mainEmployee", model);
+            }
+
         } catch (Exception e) {
-            return ResponseEntity.badRequest().body(
-                    Map.of("description", "Invalid data")
-            );
+            return new ModelAndView("error");
         }
     }
 
-    @PostMapping("/upload/{id}")
-    public ResponseEntity<?> upload(@PathVariable int id,
+    @PostMapping("/upload")
+    public RedirectView upload(@RequestParam long id,
                                     @CookieValue String jwt,
-                                    @RequestBody CreateBookDTO body) {
+                                    @ModelAttribute("book") @RequestBody CreateBookDTO body) {
         try {
             String role = getRole(JwtFilter.getBody(jwt));
 
@@ -183,55 +179,82 @@ public class BookController {
             uploadBook.setDescription(body.getDescription());
             uploadBook.setIsbn(body.getIsbn());
             uploadBook.setPageCount(body.getPageCount());
-            uploadBook.setAvailable(body.isAvailable());
+            uploadBook.setAvailable(true);
 
             Author author = authorService.getByName(body.getAuthor());
 
             uploadBook.setAuthor(author);
 
-            return ResponseEntity.ok(bookService.save(uploadBook));
-        } catch (InvalidTokenOrWrongRole e) {
-            return ResponseEntity.badRequest().body(
-                    Map.of("description", "Invalid token or wrong role")
-            );
+            bookService.save(uploadBook);
+
+            return new RedirectView("/api/book");
+
         } catch (Exception e) {
-            return ResponseEntity.badRequest().body(
-                    Map.of("description", "Invalid data")
-            );
+            return new RedirectView("/error");
         }
     }
 
-    @GetMapping("/searchByName/{authorName}")
-    public ResponseEntity<?> getByAuthor(@PathVariable String authorName,
+    @GetMapping("/searchByTitle")
+    public ModelAndView getByTitle(@RequestParam String title,
+                                         ModelMap model,
                                          @CookieValue String jwt) {
         try {
             getRole(JwtFilter.getBody(jwt));
 
-            long authorId = authorService.getByName(authorName).getId();
-
-            return ResponseEntity.ok(bookService.getByAuthor(authorId));
+            model.addAttribute("books", bookService.getByTitle(title));
+            return new ModelAndView("searchBook", model);
         } catch (InvalidTokenOrWrongRole e) {
-            return ResponseEntity.badRequest().body(
-                    Map.of("description", "Invalid token or wrong role")
-            );
+            return new ModelAndView("error");
         }
     }
 
-    @GetMapping("/searchByTitle/{title}")
-    public ResponseEntity<?> getByTitle(@PathVariable String title,
-                                         @CookieValue String jwt) {
+    @GetMapping("/getCreateHtml")
+    public String getCreateHtml(Model model,
+                          @CookieValue String jwt) {
+
         try {
-            getRole(JwtFilter.getBody(jwt));
+            String role = getRole(JwtFilter.getBody(jwt));
 
-            System.out.println(title);
+            List<Roles> requiredRoles = new ArrayList<Roles>();
+            requiredRoles.add(Roles.Director);
+            requiredRoles.add(Roles.Employee);
 
-            return ResponseEntity.ok(bookService.getByTitle(title));
-        } catch (InvalidTokenOrWrongRole e) {
-            return ResponseEntity.badRequest().body(
-                    Map.of("description", "Invalid token or wrong role")
-            );
+            if (checkRights(requiredRoles, role)) {
+                throw new InvalidTokenOrWrongRole();
+            }
+
+            model.addAttribute("book", new Book());
+
+            return "addBook";
+        } catch (Exception e) {
+            return "error";
         }
     }
+
+    @GetMapping("/getChangeHtml")
+    public String getChangeHtml(Model model,
+                                @RequestParam long id,
+                                @CookieValue String jwt) {
+
+        try {
+            String role = getRole(JwtFilter.getBody(jwt));
+
+            List<Roles> requiredRoles = new ArrayList<Roles>();
+            requiredRoles.add(Roles.Director);
+            requiredRoles.add(Roles.Employee);
+
+            if (checkRights(requiredRoles, role)) {
+                throw new InvalidTokenOrWrongRole();
+            }
+
+            model.addAttribute("book", bookService.getById(id));
+
+            return "changeBook";
+        } catch (Exception e) {
+            return "error";
+        }
+    }
+
 
     private boolean checkRights(List<Roles> requiredRoles, String role) {
         for (Roles requiredRole : requiredRoles) {

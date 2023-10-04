@@ -2,9 +2,11 @@ package ru.siberia.LibraryAPI.Entities;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
+import org.springframework.format.annotation.DateTimeFormat;
 import ru.siberia.LibraryAPI.Entities.Enums.Roles;
 
 import java.time.LocalDateTime;
+import java.util.Date;
 
 @Entity
 @Table(name = "employee", schema = "v1")
@@ -24,13 +26,15 @@ public class Employee implements IUser {
     @Column(name = "salary",
             nullable = false)
     int salary;
+    @DateTimeFormat(pattern = "yyyy-MM-dd")
 
     @Column(name = "start_date",
             nullable = false)
-    LocalDateTime startDate;
+    Date startDate;
+    @DateTimeFormat(pattern = "yyyy-MM-dd")
 
     @Column(name = "end_date")
-    LocalDateTime endDate;
+    Date endDate;
 
     @Column(name = "role",
             nullable = false)
@@ -47,9 +51,10 @@ public class Employee implements IUser {
             unique = true)
     @JsonIgnore
     Access access;
+    @DateTimeFormat(pattern = "yyyy-MM-dd")
 
     @Column(name = "birth_day")
-    LocalDateTime birthday;
+    Date birthday;
 
     public void setId(Long id) {
         this.id = id;
@@ -71,11 +76,11 @@ public class Employee implements IUser {
         this.access = access;
     }
 
-    public LocalDateTime getBirthday() {
+    public Date getBirthday() {
         return birthday;
     }
 
-    public void setBirthday(LocalDateTime birthday) {
+    public void setBirthday(Date birthday) {
         this.birthday = birthday;
     }
 
@@ -111,19 +116,19 @@ public class Employee implements IUser {
         this.salary = salary;
     }
 
-    public LocalDateTime getStartDate() {
+    public Date getStartDate() {
         return startDate;
     }
 
-    public void setStartDate(LocalDateTime startDate) {
+    public void setStartDate(Date startDate) {
         this.startDate = startDate;
     }
 
-    public LocalDateTime getEndDate() {
+    public Date getEndDate() {
         return endDate;
     }
 
-    public void setEndDate(LocalDateTime endDate) {
+    public void setEndDate(Date endDate) {
         this.endDate = endDate;
     }
 

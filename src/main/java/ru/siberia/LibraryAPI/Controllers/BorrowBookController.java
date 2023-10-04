@@ -3,11 +3,17 @@ package ru.siberia.LibraryAPI.Controllers;
 import io.jsonwebtoken.Claims;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.ui.ModelMap;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.ModelAndView;
+import org.springframework.web.servlet.view.RedirectView;
 import ru.siberia.LibraryAPI.Controllers.Error.AccessException;
 import ru.siberia.LibraryAPI.Controllers.Error.InvalidTokenOrWrongRole;
 import ru.siberia.LibraryAPI.DTOs.BookingDTO;
 import ru.siberia.LibraryAPI.DTOs.ChangeStatusDTO;
+import ru.siberia.LibraryAPI.DTOs.GiveDTO;
 import ru.siberia.LibraryAPI.Entities.BorrowBook;
 import ru.siberia.LibraryAPI.Entities.Enums.Roles;
 import ru.siberia.LibraryAPI.Entities.Enums.Status;
@@ -16,12 +22,11 @@ import ru.siberia.LibraryAPI.Services.BookService;
 import ru.siberia.LibraryAPI.Services.BorrowBookService;
 import ru.siberia.LibraryAPI.Services.ReaderService;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import javax.xml.crypto.Data;
+import java.time.LocalDateTime;
+import java.util.*;
 
-@RestController
+@Controller
 @RequestMapping("api/borrowBook")
 public class BorrowBookController {
 
@@ -84,7 +89,7 @@ public class BorrowBookController {
     }
 
     @GetMapping("/book/{id}")
-    public ResponseEntity<?> getAllByStatus(@PathVariable long id,
+    public ResponseEntity<?> getById(@PathVariable long id,
                                             @CookieValue String jwt) {
         try {
             String role = getRole(JwtFilter.getBody(jwt));
@@ -106,8 +111,9 @@ public class BorrowBookController {
     }
 
     @GetMapping("/reader/{id}")
-    public ResponseEntity<?> getHistoryReader(@PathVariable long id,
-                                              @CookieValue String jwt) {
+    public ModelAndView getHistoryReader(@PathVariable long id,
+                                         ModelMap model,
+                                         @CookieValue String jwt) {
         try {
             String role = getRole(JwtFilter.getBody(jwt));
 
@@ -119,30 +125,31 @@ public class BorrowBookController {
                 throw new InvalidTokenOrWrongRole();
             }
 
-            return ResponseEntity.ok(borrowBookService.getByReaderId(id));
+            model.addAttribute("newStatus", new ChangeStatusDTO());
+            model.addAttribute("history", borrowBookService.getByReaderId(id));
+
+            return new ModelAndView("userHistoryForEmployee", model);
         } catch (InvalidTokenOrWrongRole e) {
-            return ResponseEntity.badRequest().body(
-                    Map.of("description", "Invalid token or wrong role")
-            );
+            return new ModelAndView("error");
         }
     }
 
     @GetMapping("/getYourselfHistory")
-    public ResponseEntity<?> getYourselfHistory(@CookieValue String jwt) {
+    public ModelAndView getYourselfHistory(@CookieValue String jwt,
+                                           ModelMap model) {
         try {
-            int id = Integer.parseInt(JwtFilter.getBody(jwt).getId());
+            int id = Integer.parseInt(JwtFilter.getBody(jwt).get("id").toString());
 
-            return ResponseEntity.ok(borrowBookService.getByReaderId(id));
+            model.addAttribute("history", borrowBookService.getByReaderId(id));
+            return new ModelAndView("userHistory", model);
         } catch (Exception e) {
-            return ResponseEntity.badRequest().body(
-                    Map.of("description", "Invalid token")
-            );
+            return new ModelAndView("error");
         }
     }
 
-    @PostMapping("/changeStatus/{id}")
-    public ResponseEntity<?> changeStatus(@PathVariable long id,
-                                          @RequestBody ChangeStatusDTO body,
+    @PostMapping("/changeStatus")
+    public ResponseEntity<?> changeStatus(@RequestParam long id,
+                                          @ModelAttribute("newStatus") @RequestBody ChangeStatusDTO body,
                                           @CookieValue String jwt) {
         try {
             String role = getRole(JwtFilter.getBody(jwt));
@@ -168,22 +175,21 @@ public class BorrowBookController {
     }
 
     @PostMapping("/Booking/{id}")
-    public ResponseEntity<?> Booking(@PathVariable long id,
+    public ResponseEntity<?> booking(@PathVariable long id,
                                      @RequestBody BookingDTO body,
                                      @CookieValue String jwt) {
         try {
             int userId = Integer.parseInt(JwtFilter.getBody(jwt).getId());
 
-            if (body.getStatus() != Status.Available
-                    & body.getStatus() != Status.Booked) {
+            if (body.getStatus() != Status.Booked) {
                 throw new AccessException();
             }
 
             BorrowBook newBorrowBook = new BorrowBook();
             newBorrowBook.setBook(bookService.getById(id));
             newBorrowBook.setReader(readerService.getById(userId));
-            newBorrowBook.setStartDate(body.getStartDate());
-            newBorrowBook.setEndDate(body.getEndDate());
+            //newBorrowBook.setStartDate(body.getStartDate());
+            //newBorrowBook.setEndDate(body.getEndDate());
             newBorrowBook.setStatus(body.getStatus());
 
             return ResponseEntity.ok(borrowBookService.save(newBorrowBook));
@@ -191,6 +197,108 @@ public class BorrowBookController {
             return ResponseEntity.badRequest().body(
                     Map.of("description", "Invalid token or wrong role")
             );
+        }
+    }
+
+    @PostMapping("/give")
+    public RedirectView giveBook(@RequestParam long id,
+                                     @ModelAttribute("borrowBook") @RequestBody GiveDTO body,
+                                     @CookieValue String jwt) {
+        try {
+            String role = getRole(JwtFilter.getBody(jwt));
+
+            List<Roles> requiredRoles = new ArrayList<>();
+            requiredRoles.add(Roles.Director);
+            requiredRoles.add(Roles.Employee);
+
+            if (checkRights(requiredRoles, role)) {
+                throw new InvalidTokenOrWrongRole();
+            }
+
+            BorrowBook newBorrowBook = new BorrowBook();
+            newBorrowBook.setBook(bookService.getById(id));
+            newBorrowBook.setReader(readerService.getByFullName(body.getFirstName(), body.getLastName()));
+            newBorrowBook.setStartDate(new Date());
+            newBorrowBook.setEndDate(new Date(0));
+            newBorrowBook.setStatus(Status.Given);
+
+            borrowBookService.save(newBorrowBook);
+
+            return new RedirectView("/api/book");
+        } catch (AccessException e) {
+            return new RedirectView("/error");
+        }
+    }
+
+    @GetMapping("/return")
+    public RedirectView returnBook(@RequestParam long id,
+                             @CookieValue String jwt) {
+        try {
+            String role = getRole(JwtFilter.getBody(jwt));
+
+            List<Roles> requiredRoles = new ArrayList<>();
+            requiredRoles.add(Roles.Director);
+            requiredRoles.add(Roles.Employee);
+
+            if (checkRights(requiredRoles, role)) {
+                throw new InvalidTokenOrWrongRole();
+            }
+
+            BorrowBook uploadBorrowBook = borrowBookService.getById(id);
+            uploadBorrowBook.setStatus(Status.Returned);
+            uploadBorrowBook.setEndDate(new Date());
+
+            borrowBookService.save(uploadBorrowBook);
+
+            return new RedirectView("/api/book");
+        } catch (AccessException e) {
+            return new RedirectView("/error");
+        }
+    }
+
+    @GetMapping("/getGiveHtml")
+    public String getGiveHtml(Model model,
+                                @RequestParam long id,
+                                @CookieValue String jwt) {
+        try {
+            String role = getRole(JwtFilter.getBody(jwt));
+
+            List<Roles> requiredRoles = new ArrayList<Roles>();
+            requiredRoles.add(Roles.Director);
+            requiredRoles.add(Roles.Employee);
+
+            if (checkRights(requiredRoles, role)) {
+                throw new InvalidTokenOrWrongRole();
+            }
+
+            model.addAttribute("book", bookService.getById(id));
+            model.addAttribute("borrowBook", new GiveDTO());
+
+            return "giveBook";
+        } catch (Exception e) {
+            return "error";
+        }
+    }
+
+    @GetMapping("/getReturnHtml")
+    public String getReturnHtml(Model model,
+                                @CookieValue String jwt) {
+        try {
+            String role = getRole(JwtFilter.getBody(jwt));
+
+            List<Roles> requiredRoles = new ArrayList<Roles>();
+            requiredRoles.add(Roles.Director);
+            requiredRoles.add(Roles.Employee);
+
+            if (checkRights(requiredRoles, role)) {
+                throw new InvalidTokenOrWrongRole();
+            }
+
+            model.addAttribute("history", borrowBookService.getByStatus(Status.Given));
+
+            return "returnHtml";
+        } catch (Exception e) {
+            return "error";
         }
     }
 

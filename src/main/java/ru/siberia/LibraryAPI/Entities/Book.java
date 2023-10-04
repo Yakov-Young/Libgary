@@ -19,7 +19,7 @@ public class Book {
     String title;
 
     @OneToOne()
-    @JsonIncludeProperties(value = {"name"})
+    @JsonIncludeProperties(value = {"id", "name"})
     @JoinColumn(name = "author_id",
             referencedColumnName = "id",
             nullable = false)
@@ -38,14 +38,6 @@ public class Book {
             nullable = false)
     int pageCount;
 
-    public boolean isAvailable() {
-        return available;
-    }
-
-    public void setAvailable(boolean available) {
-        this.available = available;
-    }
-
     @Column(name = "category",
             nullable = false)
     @Enumerated(EnumType.ORDINAL)
@@ -53,6 +45,14 @@ public class Book {
 
     @Column(name = "available")
     boolean available;
+
+    public boolean isAvailable() {
+        return available;
+    }
+
+    public void setAvailable(boolean available) {
+        this.available = available;
+    }
 
     public long getId() {
         return id;

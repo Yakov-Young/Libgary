@@ -2,8 +2,10 @@ package ru.siberia.LibraryAPI.DTOs;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import org.springframework.format.annotation.DateTimeFormat;
 
 import java.time.LocalDateTime;
+import java.util.Date;
 
 public class RegisterReaderDTO {
 
@@ -11,11 +13,9 @@ public class RegisterReaderDTO {
     String firstName;
     @JsonProperty("lastName")
     String lastName;
-    @JsonFormat(pattern="yyyy-MM-dd'T'HH:mm:ss")
+    @DateTimeFormat(pattern = "yyyy-MM-dd")
     @JsonProperty("birthday")
-    LocalDateTime birthday;
-    @JsonProperty("isBanned")
-    boolean isBanned;
+    Date birthday;
     @JsonProperty("address")
     String address;
     @JsonProperty("login")
@@ -39,15 +39,35 @@ public class RegisterReaderDTO {
         return lastName;
     }
 
-    public LocalDateTime getBirthday() {
+    public Date getBirthday() {
         return birthday;
-    }
-
-    public boolean isBanned() {
-        return isBanned;
     }
 
     public String getAddress() {
         return address;
+    }
+
+    public void setFirstName(String firstName) {
+        this.firstName = firstName;
+    }
+
+    public void setLastName(String lastName) {
+        this.lastName = lastName;
+    }
+
+    public void setBirthday(Date birthday) {
+        this.birthday = birthday;
+    }
+
+    public void setAddress(String address) {
+        this.address = address;
+    }
+
+    public void setLogin(String login) {
+        this.login = login;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
     }
 }

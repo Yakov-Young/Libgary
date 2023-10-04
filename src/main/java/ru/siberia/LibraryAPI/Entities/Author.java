@@ -1,8 +1,10 @@
 package ru.siberia.LibraryAPI.Entities;
 
 import jakarta.persistence.*;
+import org.springframework.format.annotation.DateTimeFormat;
 
 import java.time.LocalDateTime;
+import java.util.Date;
 
 @Entity
 @Table(name = "author", schema = "v1")
@@ -20,11 +22,13 @@ public class Author {
             nullable = false)
     String country;
 
+    @DateTimeFormat(pattern = "yyyy-MM-dd")
     @Column(name = "birth_date")
-    LocalDateTime birthdate;
+    Date birthdate;
 
+    @DateTimeFormat(pattern = "yyyy-MM-dd")
     @Column(name = "die_date")
-    LocalDateTime dieDate;
+    Date dieDate;
 
     public long getId() {
         return id;
@@ -46,19 +50,19 @@ public class Author {
         this.country = country;
     }
 
-    public LocalDateTime getBirthdate() {
+    public Date getBirthdate() {
         return birthdate;
     }
 
-    public void setBirthdate(LocalDateTime birthdate) {
+    public void setBirthdate(Date birthdate) {
         this.birthdate = birthdate;
     }
 
-    public LocalDateTime getDieDate() {
+    public Date getDieDate() {
         return dieDate;
     }
 
-    public void setDieDate(LocalDateTime dieDate) {
+    public void setDieDate(Date dieDate) {
         this.dieDate = dieDate;
     }
 }

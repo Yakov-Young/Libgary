@@ -5,7 +5,9 @@ import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.view.RedirectView;
 import ru.siberia.LibraryAPI.Controllers.Error.InvalidTokenOrWrongRole;
 import ru.siberia.LibraryAPI.DTOs.RegisterEmployeeDTO;
 import ru.siberia.LibraryAPI.DTOs.RegisterReaderDTO;
@@ -20,6 +22,7 @@ import ru.siberia.LibraryAPI.Services.EmployeeService;
 import ru.siberia.LibraryAPI.Services.ReaderService;
 
 import java.time.LocalDateTime;
+import java.util.Date;
 import java.util.Map;
 import java.util.Objects;
 
@@ -39,13 +42,13 @@ public class RegisterController {
     }
 
     @PostMapping("/reader")
-    public ResponseEntity<?> registerReader(@NotNull @RequestBody RegisterReaderDTO dto) {
+    public RedirectView registerReader(@ModelAttribute("user") @RequestBody RegisterReaderDTO dto) {
 
+        try {
         Access newAccess = createAccess(dto.getLogin(), dto.getPassword());
 
         Reader newReader = new Reader();
 
-        try {
             newReader.setFirstName(dto.getFirstName());
             newReader.setLastName(dto.getLastName());
             newReader.setAddress(dto.getAddress());
@@ -56,15 +59,15 @@ public class RegisterController {
             accessService.save(newAccess);
             readerService.save(newReader);
         } catch (Exception e) {
-            return ResponseEntity.badRequest().body("Invalid data");
+            return new RedirectView("/api/register/reader");
         }
 
-        return ResponseEntity.status(201).body("Ok");
+        return new RedirectView("/root");
     }
 
     @PostMapping("/employee")
-    public ResponseEntity<?> registerEmployee(@NotNull @RequestBody RegisterEmployeeDTO dto,
-                                              @CookieValue String jwt) {
+    public RedirectView registerEmployee(@ModelAttribute("user") @RequestBody RegisterEmployeeDTO dto,
+                                         @CookieValue String jwt) {
         try {
             Claims jwtBody = JwtFilter.getBody(jwt);
 
@@ -83,28 +86,28 @@ public class RegisterController {
 
             newEmployee.setFirstName(dto.getFirstName());
             newEmployee.setLastName(dto.getLastName());
-            newEmployee.setStartDate(LocalDateTime.now());
+            newEmployee.setStartDate(new Date());
+            newEmployee.setEndDate(new Date(0));
             newEmployee.setSalary(dto.getSalary());
-            newEmployee.setRole(dto.getRole());
+            newEmployee.setRole(Roles.Employee);
             newEmployee.setWorked(true);
             newEmployee.setAccess(newAccess);
-            if (dto.getBirthday() != null) {
                 newEmployee.setBirthday(dto.getBirthday());
-            }
 
             accessService.save(newAccess);
             employeeService.save(newEmployee);
-        } catch (InvalidTokenOrWrongRole e) {
-            return ResponseEntity.badRequest().body(Map.of("description", "Invalid token or wrong role"));
         } catch (Exception e) {
-            return ResponseEntity.badRequest().body("Invalid data");
+            return new RedirectView("error");
         }
-        return ResponseEntity.status(201).body("Ok");
+        return new RedirectView("/api/book");
     }
 
-    @GetMapping("/test")
-    public String test() {
-        return "index";
+    @GetMapping("/getRegisterHtml")
+    public String getRegister(Model model) {
+
+        model.addAttribute("user", new RegisterReaderDTO());
+
+        return "registerReader";
     }
 
 

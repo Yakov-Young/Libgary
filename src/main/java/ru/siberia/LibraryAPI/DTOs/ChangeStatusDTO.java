@@ -8,6 +8,10 @@ public class ChangeStatusDTO {
         return status;
     }
 
+    public void setStatus(Status status) {
+        this.status = status;
+    }
+
     @JsonProperty("status")
     Status status;
 }

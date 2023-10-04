@@ -12,13 +12,23 @@ import java.time.LocalDateTime;
 
 public class ChangeReaderDTO {
     @JsonProperty("firstName")
-    String firstName;
+    public String firstName;
     @JsonProperty("lastName")
-    String lastName;
-    @JsonProperty("birthday")
-    LocalDateTime birthday;
+    public String lastName;
     @JsonProperty("address")
-    String address;
+    public String address;
+
+    public void setFirstName(String firstName) {
+        this.firstName = firstName;
+    }
+
+    public void setLastName(String lastName) {
+        this.lastName = lastName;
+    }
+
+    public void setAddress(String address) {
+        this.address = address;
+    }
 
     public String getFirstName() {
         return firstName;
@@ -26,10 +36,6 @@ public class ChangeReaderDTO {
 
     public String getLastName() {
         return lastName;
-    }
-
-    public LocalDateTime getBirthday() {
-        return birthday;
     }
 
     public String getAddress() {

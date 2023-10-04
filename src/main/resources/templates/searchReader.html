@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.4/jquery.min.js"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+  <title>Библиотека "Зебра"</title>
+  <style>
+      .login-page {
+      width: 800px;
+      padding: 8% 0 0;
+      margin: auto;
+        }
+
+      .form {
+        position: relative;
+        background: #FFFFFF;
+        padding: 15px 15px 30px 15px;
+        text-align: center;
+        box-shadow: 0 0 20px 0 rgba(0, 0, 0, 0.2), 0 5px 5px 0 rgba(0, 0, 0, 0.24);
+      }
+
+      .td {
+        text-align: center;
+        vertical-align: middle;
+      }
+
+      .t1 {
+      outline: 0;
+      background: #f2f2f2;
+      width: 80%;
+      border: 0;
+      margin: 0 0 15px;
+      padding: 15px;
+      box-sizing: border-box;
+      font-size: 14px;
+      }
+    </style>
+</head>
+<body>
+<div class="login-page">
+  <div class="form">
+    <table class="table table-bordered table-striped">
+      <h1>Результаты по вашему запросу</h1>
+      <form th:method='GET' th:action="@{/api/reader/findByLastName}">
+        <input type="text" class="t1" th:value="${lastName}" th:name="lastName" placeholder="Введите фимилию">
+        <input type="submit" class="btn btn-outline-dark btn-lg" value="Поиск">
+      </form>
+      <table class="table table-bordered table-striped">
+        <thead>
+        <tr class="row">
+          <th class="col sm-1">Имя</th>
+          <th class="col">Фамилия</th>
+          <th class="col">Дата рождения</th>
+          <th class="col">Адресс</th>
+          <th class="col">Заблокирован</th>
+          <th class="col">Заблокировать</th>
+          <th class="col">История</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="reader : ${readers}">
+          <td>#</td>
+          <td th:text="${reader.getFirstName()}">Имя</td>
+          <td th:text="${reader.getLastName()}">Фамилия</td>
+          <td th:text="${reader.getBirthday()}">PageCount</td>
+          <td th:text="${reader.getAddress()}">Адресс</td>
+          <td th:text="${reader.isBanned()}">Заблокирован</td>
+          <td>
+            <a th:href="@{/api/reader/ban/{id}(id=${reader.getId()})}">Заблокировать</a>
+          </td>
+
+          <td>
+            <a th:href="@{/api/borrowBook/reader/{id}(id=${reader.getId()})}">История</a>
+          </td>
+        </tr>
+        <tbody>
+      </table>
+  </div>
+</div>
+</body>
+</html>

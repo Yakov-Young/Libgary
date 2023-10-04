@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.4/jquery.min.js"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+  <title>Профиль</title>
+  <style>
+        .login-page {
+          width: 600px;
+          padding: 8% 0 0;
+          margin: auto;
+        }
+
+        .form {
+          position: relative;
+          z-index: 1;
+          background: #FFFFFF;
+          margin: 0 auto 100px;
+          padding: 45px;
+          box-shadow: 0 0 20px 0 rgba(0, 0, 0, 0.2), 0 5px 5px 0 rgba(0, 0, 0, 0.24);
+        }
+
+        .t1 {
+          outline: 0;
+          background: #f2f2f2;
+          width: 100%;
+          border: 0;
+          margin: 0 0 15px;
+          padding: 15px;
+          box-sizing: border-box;
+          font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+<div class="login-page">
+  <div class="form">
+    <h1 style="text-align: center;">Выдать книгу</h1>
+    <br/>
+    <form th:method='POST' th:action="@{/api/borrowBook/give(id=${book.getId()})}" th:object="${borrowBook}">
+      <input type="text" th:field="*{firstName}" class="t1" placeholder="Имя"/>
+      <input type="text" th:field="*{lastName}" class="t1" placeholder="Фамилия"/>
+      <br/>
+      <input type="submit" class="btn btn-primary btn-block btn-lg" value="Создать">
+    </form>
+  </div>
+</div>
+</body>
+</html>

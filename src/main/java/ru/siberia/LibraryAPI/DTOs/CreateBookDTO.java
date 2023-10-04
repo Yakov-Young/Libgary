@@ -26,8 +26,6 @@ public class CreateBookDTO {
 
     @JsonProperty("pageCount")
     int pageCount;
-    @JsonProperty("available")
-    boolean available;
 
     public String getTitle() {
         return title;
@@ -49,7 +47,27 @@ public class CreateBookDTO {
         return pageCount;
     }
 
-    public boolean isAvailable() {
-        return available;
+    public void setTitle(String title) {
+        this.title = title;
+    }
+
+    public void setPageCount(int pageCount) {
+        this.pageCount = pageCount;
+    }
+
+    public void setAuthor(String author) {
+        this.author = author;
+    }
+
+    public void setIsbn(String isbn) {
+        this.isbn = isbn;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    public void setCategory(Categories category) {
+        this.category = category;
     }
 }

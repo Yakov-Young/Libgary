@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.4/jquery.min.js"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+  <title>Библиотека "Зебра"</title>
+  <style>
+      .login-page {
+      width: 1000px;
+      padding: 8% 0 0;
+      margin: auto;
+        }
+
+      .form {
+        position: relative;
+        background: #FFFFFF;
+        padding: 15px 15px 30px 15px;
+        text-align: center;
+        box-shadow: 0 0 20px 0 rgba(0, 0, 0, 0.2), 0 5px 5px 0 rgba(0, 0, 0, 0.24);
+      }
+
+      .td {
+        text-align: center;
+        vertical-align: middle;
+      }
+
+      .t1 {
+      outline: 0;
+      background: #f2f2f2;
+      width: 80%;
+      border: 0;
+      margin: 0 0 15px;
+      padding: 15px;
+      box-sizing: border-box;
+      font-size: 14px;
+      }
+    </style>
+</head>
+<body>
+<div class="login-page">
+  <div class="form">
+    <h1>Сотрудники</h1>
+
+    <div style="width: 100%;" class="input-group mb-3">
+      <div class="input-group-prepend">
+        <form th:method='GET' th:action="@{/api/employee/getCreateHtml}">
+          <input class="btn btn-outline-secondary" type="submit" value="Зарегистрировать">
+        </form>
+      </div>
+    </div>
+
+    <br/>
+    <table class="table table-bordered table-striped">
+      <thead>
+      <tr class="row">
+        <th class="col sm-1">Имя</th>
+        <th class="col">Фамилия</th>
+        <th class="col">Должность</th>
+        <th class="col">Зарплата</th>
+        <th class="col">Дата найма</th>
+        <th class="col">Дата увольнения</th>
+        <th class="col">Дата рождения</th>
+        <th class="col">Изменить</th>
+      </tr>
+      </thead>>
+      <tbody>
+      <tr th:each="emp : ${employs}">
+        <td>#</td>
+        <td th:text="${emp.getFirstName()}">Имя</td>
+        <td th:text="${emp.getLastName()}">Фамилия</td>
+        <td th:text="${emp.getRole()}">Должность</td>
+        <td th:text="${emp.getSalary()}">Зарплата</td>
+        <td th:text="${emp.getStartDate()}">Дата найма</td>
+        <td th:text="${emp.getEndDate()}">Дата увольнения</td>
+        <td th:text="${emp.getBirthday()}">День рождения</td>
+        <td>
+          <a th:href="@{/api/employee/getChangeHtml(id=${emp.getId()})}">Изменить</a>
+        </td>
+      </tr>
+      <tbody>
+    </table>
+  </div>
+</div>
+</body>
+</html>
